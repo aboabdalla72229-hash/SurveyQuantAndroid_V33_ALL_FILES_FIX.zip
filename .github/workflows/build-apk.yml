@@ -11,10 +11,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download project ZIP
+
+      - name: Download SurveyQuant V33
         run: |
-          curl -fL "https://raw.githubusercontent.com/aboabdalla72229-hash/SurveyQuantAndroid/main/SurveyQuantAndroid_V33_ALL_FILES_FIX.zip" -o project.zip
+          set -e
+
+          curl -fL \
+            "https://raw.githubusercontent.com/aboabdalla72229-hash/SurveyQuantAndroid/main/SurveyQuantAndroid_V33_ALL_FILES_FIX.zip" \
+            -o project.zip
+
+          echo "Downloaded ZIP:"
+          ls -lh project.zip
+
+          echo "Testing ZIP:"
+          unzip -t project.zip
+
+          echo "Extracting project:"
+          mkdir project
           unzip -q project.zip -d project
+
+          echo "Project files:"
+          find project -maxdepth 2 -type f | head -50
+
+      - name: Check Android project
+        run: |
+          test -d project/SurveyQuantAndroid
+          test -f project/SurveyQuantAndroid/app/build.gradle
+          test -f project/SurveyQuantAndroid/app/src/main/assets/index.html
+          test -f project/SurveyQuantAndroid/app/src/main/java/com/surveyquant/app/MainActivity.java
+
+          echo "Android project detected successfully."
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -27,20 +53,20 @@ jobs:
 
       - name: Install Android SDK 33
         run: |
-          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+          sdkmanager "platform-tools" \
+            "platforms;android-33" \
+            "build-tools;33.0.2"
 
       - name: Setup Gradle 8.7
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
 
-      - name: Build APK
+      - name: Build SurveyQuant APK
         run: |
           cd project/SurveyQuantAndroid
           gradle --no-daemon assembleDebug
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: SurveyQuant-V33-ALL-FILES-APK
-          path: project/SurveyQuantAndroid/app/build/outputs/apk/debug/app-debug.apk
+      - name: Check APK
+        run: |
+          test -f project/SurveyQuantAndroid/app/build/outputs/ap
