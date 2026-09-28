@@ -1,0 +1,46 @@
+name: Build SurveyQuant APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download project ZIP
+        run: |
+          curl -fL "https://raw.githubusercontent.com/aboabdalla72229-hash/SurveyQuantAndroid/main/SurveyQuantAndroid_V33_ALL_FILES_FIX.zip" -o project.zip
+          unzip -q project.zip -d project
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android SDK 33
+        run: |
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+
+      - name: Setup Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build APK
+        run: |
+          cd project/SurveyQuantAndroid
+          gradle --no-daemon assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SurveyQuant-V33-ALL-FILES-APK
+          path: project/SurveyQuantAndroid/app/build/outputs/apk/debug/app-debug.apk
